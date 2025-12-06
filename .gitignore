@@ -1,0 +1,26 @@
+# Ignore build files
+Windows-COM/x64
+Windows-COM/Debug
+Debug/
+x64/
+Release/
+__pycache__/
+TestFiles/
+
+# Ignore irrelevant studio files
+Windows-COM/.vs
+Windows-COM/.vs
+*.exe
+*.dll
+*.db-shm
+*.db-wal
+*.opendb
+*.iobj
+*.ipbd
+*.pdb
+*.suo
+*.tlog
+*.ilk
+*.psch
+*.vcxproj.filters
+*.vcxproj.user
