@@ -15,8 +15,9 @@ HRESULT CreateFileCOM()
     HRESULT status = S_OK;
     IDispatch *fileSystemDispatchInterface = (IDispatch*) NULL;
     OLECHAR *createTextFileStr = (OLECHAR*)L"CreateTextFile";
+    OLECHAR* writeStr = (OLECHAR*)L"Write";
     DISPID dispid;    
-    VARIANT result = { VT_EMPTY }, filenameVar = { VT_EMPTY }, overwriteVar = { VT_EMPTY }, unicodeVar = { VT_EMPTY };
+    VARIANT result = { VT_EMPTY }, filenameVar = { VT_EMPTY }, overwriteVar = { VT_EMPTY }, unicodeVar = { VT_EMPTY }, textVar = { VT_EMPTY };
     DISPPARAMS params = { 0 };
     EXCEPINFO exceptInfo = { 0 };
     UINT argErr = 0;
@@ -29,6 +30,8 @@ HRESULT CreateFileCOM()
         printf("Failed CoCreateInstance; error 0x%X\n", status);
         goto cleanup;
     }
+
+    printf("Successfully created instance of FileSystem interface object\n");
 
     // Call GetIDsOfNames to get the dispatch ID (DISPID) for IFileSystem->CreateTextFile()
     status = fileSystemDispatchInterface->GetIDsOfNames(IID_NULL, &createTextFileStr, 1, LOCALE_USER_DEFAULT, &dispid);
@@ -72,8 +75,39 @@ HRESULT CreateFileCOM()
         goto cleanup;
     }
 
+    printf("Successfully created test file\n");
+
     // Now should have a TextStream object returned to us, so we should be able to write to it 
-    
+
+    // We get back a dispatch interface for our TextStream object, so we should be able to GetIDsOfNames again and Invoke our Write method with it 
+    status = result.pdispVal->GetIDsOfNames(IID_NULL, &writeStr, 1, LOCALE_USER_DEFAULT, &dispid);
+    if (status != S_OK)
+    {
+        printf("Failed GetIDsofNames; error 0x%X\n", status);
+        goto cleanup;
+    }
+
+    printf("DISPID for Write is %d\n", dispid);
+
+    textVar.vt = VT_BSTR;
+    textVar.bstrVal = SysAllocString(L"This is a test string!");
+
+    // Reposition our arg
+    args[0] = textVar;
+    args[1] = { 0 };
+    args[2] = { 0 };
+
+    params.cArgs = 1;
+
+    status = result.pdispVal->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &result, &exceptInfo, &argErr);
+    if (status != S_OK)
+    {
+        printf("Failed Invoke; error 0x%X\n", status);
+        goto cleanup;
+    }
+
+    printf("Successfully wrote to output file\n");
+
 
 cleanup:
     return status;
@@ -84,8 +118,7 @@ int main()
 {
     HRESULT status = S_OK;
     
-
-    printf("Initializing file system...\n");
+    printf("Loading COM library...\n");
 
     // Initialize COM library
     status = CoInitialize(NULL);
@@ -95,9 +128,12 @@ int main()
         return -1;
     }
 
+    printf("Initializing file system object...\n");
+
     // Create our file
     CreateFileCOM();
 
+    printf("Cleaning up...\n");
 
     // Unload COM library
     CoUninitialize();
