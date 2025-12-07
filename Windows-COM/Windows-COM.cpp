@@ -9,6 +9,7 @@
 
 
 // Create a file in a particular directory via IFileSystem->IDispatch interface
+    // This interface is exposed by Windows' Visual Basic for Applications (VBA) libraries
 HRESULT CreateFileCOM()
 {
     HRESULT status = S_OK;
@@ -63,8 +64,6 @@ HRESULT CreateFileCOM()
     params.cArgs = 3;
     params.rgvarg = args;
 
-    // Do we need the DISPIDs for these args?
-
     // Now invoke our method with the required params
     status = fileSystemDispatchInterface->Invoke(dispid, IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD, &params, &result, &exceptInfo, &argErr);
     if (status != S_OK)
@@ -72,6 +71,8 @@ HRESULT CreateFileCOM()
         printf("Failed Invoke; error 0x%X\n", status);
         goto cleanup;
     }
+
+    // Now should have a TextStream object returned to us, so we should be able to write to it 
     
 
 cleanup:
